@@ -268,13 +268,6 @@ document.addEventListener("DOMContentLoaded", function () {
     var G = JSON.parse(gsrc.textContent);
     var stage = gw.querySelector(".pm-globe__stage");
     var cv = stage.querySelector("canvas");
-    /* phones / tablets / short laptops: the stage sits in a tall "track" and sticks in the middle of the screen
-       while the user scrolls through the track, so the globe animation is spread over a long, smooth scroll */
-    var track = document.createElement("div");
-    track.className = "pm-globe__track";
-    stage.parentNode.insertBefore(track, stage);
-    track.appendChild(stage);
-    var gTop = 0;
     var ctx = cv.getContext("2d");
     var RAD = Math.PI / 180;
     var B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_", B = {};
@@ -311,21 +304,20 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     var WAVE = 1300;                                   /* ms for the wave to cross a state */
 
-    var mq = window.matchMedia("(min-width: 901px) and (min-height: 640px)");
-    var scrub = false, W = 0, H = 0, DPR = 1, headerH = 76, freeL = 0;
+    /* pinned scroll scene on every device (reduced motion: static final view)
+       scrub = laptops/desktops: text left, globe opens into the US on the right
+       stack = phones/tablets: text on top, globe below, both held in place while the user scrolls */
+    var mq = window.matchMedia("(min-width: 901px)");
+    var scrub = false, stack = false, W = 0, H = 0, DPR = 1, headerH = 76, freeL = 0;
     function size() {
       scrub = mq.matches && !reduce;
+      stack = !mq.matches && !reduce;
       gw.classList.toggle("is-scrub", scrub);
+      gw.classList.toggle("is-stack", stack);
       headerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 76;
       W = stage.clientWidth; H = stage.clientHeight;
       var cr = gw.querySelector(".pm-globe__copy").getBoundingClientRect(), sr = stage.getBoundingClientRect();
       freeL = cr.right - sr.left + 32;                    /* first free x to the right of the text */
-      if (!scrub) {
-        var vh = window.innerHeight;
-        gTop = Math.max(headerH + 8, headerH + (vh - headerH - H) / 2);       /* centred under the header */
-        track.style.setProperty("--gtop", gTop + "px");
-        track.style.height = (H + Math.max(vh * 1.5, 900)) + "px";          /* scroll length while pinned (close to large screens) */
-      } else { track.style.height = ""; }
       DPR = Math.min(window.devicePixelRatio || 1, 2);
       cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -335,15 +327,12 @@ document.addEventListener("DOMContentLoaded", function () {
     function lerp(a, b, t) { return a + (b - a) * t; }
     function progress() {
       if (reduce) return 1;
-      if (scrub) {
+      if (scrub || stack) {
         var r = gw.getBoundingClientRect();
         var span = r.height - (window.innerHeight - headerH);
         return span > 0 ? clamp((headerH - r.top) / span) : 1;
       }
-      /* phones, tablets, short laptops: 0 until the globe reaches its pinned spot (fully in view, centred),
-         then it turns as the user scrolls through the track; 1 just before it unpins (scrolling back reverses it) */
-      var t = track.getBoundingClientRect();
-      return clamp((gTop - t.top) / Math.max(1, t.height - H));
+      return 1;
     }
 
     /* camera for this frame */
