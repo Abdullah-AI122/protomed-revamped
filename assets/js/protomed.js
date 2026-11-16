@@ -97,8 +97,8 @@ document.addEventListener("DOMContentLoaded", function () {
   /* Stacking (2 places): a [data-pin] section holds once its bottom reaches the viewport bottom,
      then shrinks/dims slightly while the following [data-cover] section slides over it. */
   var pins = Array.prototype.slice.call(document.querySelectorAll("main > section[data-pin]"));
-  /* phones: no cover-up effect — tall heroes would have their buttons covered as soon as they come into view */
-  if (pins.length && "CSS" in window && CSS.supports("position", "sticky") && !window.matchMedia("(max-width: 600px)").matches) {
+  /* phones + short laptop windows: no cover-up effect — heroes taller than the screen would have their buttons covered */
+  if (pins.length && "CSS" in window && CSS.supports("position", "sticky") && !window.matchMedia("(max-width: 600px), (max-height: 620px)").matches) {
     doc.classList.add("js-stack");
     var vh = 0, ticking = false;
     var pairs = pins.map(function (s) { return { pin: s, cover: s.nextElementSibling }; })
@@ -317,6 +317,7 @@ document.addEventListener("DOMContentLoaded", function () {
       cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     }
+    var introT0 = 0, INTRO_MS = 3600;                  /* timed intro (non-pinned layouts) */
     function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
     function ease(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
     function lerp(a, b, t) { return a + (b - a) * t; }
@@ -327,8 +328,14 @@ document.addEventListener("DOMContentLoaded", function () {
         var span = r.height - (window.innerHeight - headerH);
         return span > 0 ? clamp((headerH - r.top) / span) : 1;
       }
-      var s = stage.getBoundingClientRect();
-      return clamp((window.innerHeight - s.top) / (window.innerHeight * 0.85));
+      /* phones, tablets, short laptops: the intro plays on a timer once the globe is really in view
+         (>= 60% visible), so it never runs out of sight; leaving the view completely resets it to play again */
+      var s = stage.getBoundingClientRect(), vh = window.innerHeight;
+      var seen = Math.max(0, Math.min(s.bottom, vh) - Math.max(s.top, headerH)) / Math.max(1, s.height);
+      var now = performance.now();
+      if (!introT0 && seen >= 0.6) introT0 = now;
+      else if (introT0 && seen <= 0) introT0 = 0;
+      return introT0 ? clamp((now - introT0) / INTRO_MS) : 0;
     }
 
     /* camera for this frame */
@@ -576,6 +583,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (mq.addEventListener) mq.addEventListener("change", function () { size(); draw(performance.now()); });
     new IntersectionObserver(function (en) {
       gvisible = en[0].isIntersecting;
+      if (!gvisible) introT0 = 0;                         /* out of view: next time it comes into view, the intro plays again */
       if (gvisible) { if (reduce) draw(performance.now()); else kick(); }
       else { clearTimeout(burstT); burstT = null; }
     }, { rootMargin: "120px 0px" }).observe(gw);

@@ -329,7 +329,7 @@ section[id] { scroll-margin-top: calc(var(--header-h) + 16px); }
 
 .pm-hero__inner { width: 100%; }
 .pm-hero__title {
-  font-size: clamp(40px, 5.6vw, var(--fs-display)); font-weight: 800; line-height: 1.04;
+  font-size: clamp(36px, min(5.6vw, 10.5vh), var(--fs-display)); font-weight: 800; line-height: 1.04;
   letter-spacing: var(--ls-display); color: var(--color-white); max-width: 18ch; text-wrap: balance;
 }
 .pm-hero__title .pm-tone { color: var(--color-steel-gray); }
@@ -835,7 +835,7 @@ html.lenis, html.lenis body { height: auto; }
 .pm-crumbs [aria-current] { color: var(--color-white); }
 .pm-phero__grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr); gap: var(--space-16); align-items: end; }
 .pm-phero__grid--solo { grid-template-columns: minmax(0, 1fr); }
-.pm-phero__title { font-size: clamp(36px, 4.4vw, 58px); font-weight: 800; line-height: 1.06; letter-spacing: var(--ls-display); max-width: 20ch; text-wrap: balance; }
+.pm-phero__title { font-size: clamp(32px, min(4.4vw, 9vh), 58px); font-weight: 800; line-height: 1.06; letter-spacing: var(--ls-display); max-width: 20ch; text-wrap: balance; }
 .pm-phero__sub { margin-top: var(--space-6); max-width: 62ch; }
 .pm-phero__sub p { font-size: var(--fs-body-lg); color: rgba(255,255,255,0.78); }
 .pm-phero__sub p + p { margin-top: var(--space-3); }
@@ -1453,4 +1453,12 @@ html.lenis, html.lenis body { height: auto; }
   .pm-cred__abbr { display: none; }
   .pm-cred__text { grid-column: 2; }
   .pm-cred__name { font-size: 16px; }
+}
+
+/* short laptop windows: globe never taller than the screen; heroes a little tighter */
+.pm-globe:not(.is-scrub) .pm-globe__stage { max-width: min(100%, calc(100svh - var(--header-h) - 48px)); margin-left: auto; margin-right: auto; }
+@media (max-height: 700px) and (min-width: 901px) {
+  .pm-hero { padding-top: calc(var(--header-h) + var(--space-6)); padding-bottom: var(--space-8); }
+  .pm-hero__rule { margin-top: var(--space-6); margin-bottom: var(--space-6); }
+  .pm-phero { padding-top: calc(var(--header-h) + var(--space-8)); padding-bottom: var(--space-10); }
 }
