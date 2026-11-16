@@ -1,0 +1,25 @@
+# Only the live site goes to GitHub: the .html pages + assets/
+# Kept locally (not pushed): page builder + sources, WordPress build notes, old site copy
+tools/
+webcopy/
+skill.md
+reference.md
+
+# test / tooling leftovers (if they are ever recreated)
+node_modules/
+tests/
+playwright.config.js
+package.json
+package-lock.json
+.npm-cache/
+__pycache__/
+*.pyc
+
+# local preview / temp files
+_*.html
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
