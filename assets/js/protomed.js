@@ -317,7 +317,6 @@ document.addEventListener("DOMContentLoaded", function () {
       cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     }
-    var introT0 = 0, INTRO_MS = 3600;                  /* timed intro (non-pinned layouts) */
     function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
     function ease(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
     function lerp(a, b, t) { return a + (b - a) * t; }
@@ -328,14 +327,12 @@ document.addEventListener("DOMContentLoaded", function () {
         var span = r.height - (window.innerHeight - headerH);
         return span > 0 ? clamp((headerH - r.top) / span) : 1;
       }
-      /* phones, tablets, short laptops: the intro plays on a timer once the globe is really in view
-         (>= 60% visible), so it never runs out of sight; leaving the view completely resets it to play again */
-      var s = stage.getBoundingClientRect(), vh = window.innerHeight;
-      var seen = Math.max(0, Math.min(s.bottom, vh) - Math.max(s.top, headerH)) / Math.max(1, s.height);
-      var now = performance.now();
-      if (!introT0 && seen >= 0.6) introT0 = now;
-      else if (introT0 && seen <= 0) introT0 = 0;
-      return introT0 ? clamp((now - introT0) / INTRO_MS) : 0;
+      /* phones, tablets, short laptops: scroll-driven, but only while the globe is in view —
+         0 when it is 60% visible coming up from the bottom, 1 while it is still ~75% on screen near the top,
+         so every bit of scrolling turns it further and it never finishes out of sight (scrolling back reverses it) */
+      var s = stage.getBoundingClientRect(), vh = window.innerHeight, h = Math.max(1, s.height);
+      var startTop = vh - 0.6 * h, endTop = headerH - 0.25 * h;
+      return clamp((startTop - s.top) / Math.max(1, startTop - endTop));
     }
 
     /* camera for this frame */
@@ -583,7 +580,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (mq.addEventListener) mq.addEventListener("change", function () { size(); draw(performance.now()); });
     new IntersectionObserver(function (en) {
       gvisible = en[0].isIntersecting;
-      if (!gvisible) introT0 = 0;                         /* out of view: next time it comes into view, the intro plays again */
       if (gvisible) { if (reduce) draw(performance.now()); else kick(); }
       else { clearTimeout(burstT); burstT = null; }
     }, { rootMargin: "120px 0px" }).observe(gw);
