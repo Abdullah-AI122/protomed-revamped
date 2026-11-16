@@ -1462,3 +1462,9 @@ html.lenis, html.lenis body { height: auto; }
   .pm-hero__rule { margin-top: var(--space-6); margin-bottom: var(--space-6); }
   .pm-phero { padding-top: calc(var(--header-h) + var(--space-8)); padding-bottom: var(--space-10); }
 }
+
+/* globe track (phones, tablets, short laptops): the stage sticks centred while the track scrolls by */
+.pm-globe__track { position: relative; }
+.pm-globe:not(.is-scrub) .pm-globe__track > .pm-globe__stage { position: sticky; top: var(--gtop, 90px); }
+.pm-globe.is-scrub .pm-globe__track { display: contents; }               /* large desktops: original pinned layout */
+@media (min-width: 901px) { .pm-globe:not(.is-scrub) .pm-globe__grid { align-items: start; } }
